@@ -1,4 +1,5 @@
 using Bumbershoot.Utilities;
+using MailGatekeeper;
 using MailGatekeeper.Api;
 using MailGatekeeper.Api.Imap;
 using MailGatekeeper.Api.Rules;
@@ -7,6 +8,7 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.WithJsonAndEnvVariables();
+
 builder.Host.UseSerilog((ctx, cfg) =>
 {
   cfg
@@ -60,7 +62,7 @@ app.MapPost("/v1/drafts", async Task<Results<Ok<CreateDraftResponse>, BadRequest
 
 app.Run();
 
-namespace MailGatekeeper.Api
+namespace MailGatekeeper
 {
   public sealed record CreateDraftRequest(string AlertId, string Body, string? SubjectPrefix = null);
 

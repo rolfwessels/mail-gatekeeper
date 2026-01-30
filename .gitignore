@@ -12,3 +12,4 @@
 dist/*
 tests/**/TestResults/**/*
 src/version.json
+/src/MailGatekeeper.Api/appsettings.local.json

@@ -2,13 +2,16 @@ using Bumbershoot.Utilities;
 
 namespace MailGatekeeper.Api;
 
-public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption(configuration, "mail", "mg_key")
+public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption(configuration, "", "mg_key")
 {
   // IMAP settings
   public string ImapHost => ReadConfigValue("ImapHost", "imap.gmail.com");
   public int ImapPort => ReadConfigValue("ImapPort", 993);
   public bool ImapUseSsl => ReadConfigValue("ImapUseSsl", true);
+
   public string ImapUsername => ReadConfigValue("ImapUsername", "");
+
+  //use https://myaccount.google.com/apppasswords
   public string ImapPassword => ReadConfigValue("ImapPassword", "");
   public string ImapInboxFolder => ReadConfigValue("ImapInboxFolder", "INBOX");
   public string ImapDraftsFolder => ReadConfigValue("ImapDraftsFolder", "Drafts");
@@ -23,4 +26,23 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
   // Scan settings
   public int ScanLimit => ReadConfigValue("ScanLimit", 50);
   public bool FetchBodySnippet => ReadConfigValue("FetchBodySnippet", false);
+  public bool FetchFullBody => ReadConfigValue("FetchFullBody", false);
+
+  // Rule Engine patterns
+  public string[] IgnoreSenderPatterns => ReadConfigValue("IgnoreSenderPatterns", "no-reply,noreply,donotreply,info")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(p => p.ToLowerInvariant())
+    .ToArray();
+
+  public string[] IgnoreSubjectPatterns =>
+    ReadConfigValue("IgnoreSubjectPatterns", "newsletter,unsubscribe,no-reply,noreply,do not reply")
+      .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+      .Select(p => p.ToLowerInvariant())
+      .ToArray();
+
+  public string[] ActionSubjectPatterns => ReadConfigValue("ActionSubjectPatterns",
+      "action required,urgent,invoice,payment,overdue,confirm,verification,reset password,password reset,meeting,reschedule,sign,approve,maintenance")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(p => p.ToLowerInvariant())
+    .ToArray();
 }

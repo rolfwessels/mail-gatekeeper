@@ -44,7 +44,7 @@ public sealed class ImapService(
         try
         {
           var msg = await inbox.GetMessageAsync(summary.UniqueId, ct);
-          snippet = ExtractSnippet(msg);
+          snippet = settings.FetchFullBody ? ExtractFullBody(msg) : ExtractSnippet(msg);
         }
         catch (Exception ex)
         {
@@ -136,6 +136,11 @@ public sealed class ImapService(
       .Trim();
 
     return text.Length <= maxLength ? text : text[..maxLength];
+  }
+
+  private static string ExtractFullBody(MimeMessage msg)
+  {
+    return (msg.TextBody ?? "").Trim();
   }
 }
 
