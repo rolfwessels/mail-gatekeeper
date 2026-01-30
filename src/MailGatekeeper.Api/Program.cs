@@ -1,3 +1,4 @@
+using Bumbershoot.Utilities;
 using MailGatekeeper.Api;
 using MailGatekeeper.Api.Imap;
 using MailGatekeeper.Api.Rules;
@@ -5,7 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Configuration.WithJsonAndEnvVariables();
 builder.Host.UseSerilog((ctx, cfg) =>
 {
   cfg

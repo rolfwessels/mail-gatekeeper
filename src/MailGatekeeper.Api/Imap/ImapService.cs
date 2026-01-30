@@ -4,37 +4,22 @@ using MimeKit;
 
 namespace MailGatekeeper.Api.Imap;
 
-public sealed class ImapService
+public sealed class ImapService(
+  Settings settings,
+  GatekeeperStore store,
+  RuleEngine rules,
+  ImapClientFactory factory,
+  ILogger<ImapService> log)
 {
-  private readonly Settings _settings;
-  private readonly GatekeeperStore _store;
-  private readonly RuleEngine _rules;
-  private readonly ImapClientFactory _factory;
-  private readonly ILogger<ImapService> _log;
-
-  public ImapService(
-    Settings settings,
-    GatekeeperStore store,
-    RuleEngine rules,
-    ImapClientFactory factory,
-    ILogger<ImapService> log)
-  {
-    _settings = settings;
-    _store = store;
-    _rules = rules;
-    _factory = factory;
-    _log = log;
-  }
-
   public async Task<ScanResult> ScanAsync(CancellationToken ct)
   {
-    var opts = ImapOptions.FromConfig(_settings);
+    var opts = ImapOptions.FromConfig(settings);
 
-    using var client = await _factory.ConnectAsync(opts, ct);
+    using var client = await factory.ConnectAsync(opts, ct);
     var inbox = await client.GetFolderAsync(opts.InboxFolder, ct);
     await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
 
-    var limit = _settings.ScanLimit;
+    var limit = settings.ScanLimit;
     var start = Math.Max(0, inbox.Count - limit);
 
     var summaries = await inbox.FetchAsync(
@@ -43,7 +28,7 @@ public sealed class ImapService
       ct);
 
     var added = 0;
-    var fetchBody = _settings.FetchBodySnippet;
+    var fetchBody = settings.FetchBodySnippet;
 
     foreach (var summary in summaries.Reverse())
     {
@@ -63,17 +48,17 @@ public sealed class ImapService
         }
         catch (Exception ex)
         {
-          _log.LogWarning(ex, "Failed to fetch body for UID {Uid}", summary.UniqueId);
+          log.LogWarning(ex, "Failed to fetch body for UID {Uid}", summary.UniqueId);
         }
       }
 
-      var classification = _rules.Classify(from, subject, snippet);
+      var classification = rules.Classify(from, subject, snippet);
       if (classification.Category != "action_required")
         continue;
 
       var messageId = env.MessageId ?? summary.UniqueId.Id.ToString();
 
-      _store.Upsert(new Alert(
+      store.Upsert(new Alert(
         Id: messageId,
         From: from,
         Subject: subject,
@@ -92,12 +77,12 @@ public sealed class ImapService
 
   public async Task<CreateDraftResponse> CreateDraftReplyAsync(CreateDraftRequest req, CancellationToken ct)
   {
-    var opts = ImapOptions.FromConfig(_config);
+    var opts = ImapOptions.FromConfig(settings);
 
-    if (!_store.TryGet(req.AlertId, out var alert) || alert == null)
+    if (!store.TryGet(req.AlertId, out var alert) || alert == null)
       throw new InvalidOperationException($"Unknown alertId: {req.AlertId}");
 
-    using var client = await _factory.ConnectAsync(opts, ct);
+    using var client = await factory.ConnectAsync(opts, ct);
     var inbox = await client.GetFolderAsync(opts.InboxFolder, ct);
     await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
 
@@ -110,7 +95,7 @@ public sealed class ImapService
     await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
     await drafts.AppendAsync(reply, MessageFlags.Draft, ct);
 
-    _log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.MessageId, opts.DraftsFolder);
+    log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.MessageId, opts.DraftsFolder);
 
     return new CreateDraftResponse(
       DraftMessageId: reply.MessageId ?? Guid.NewGuid().ToString("N"),

@@ -18,7 +18,7 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
 
   // Polling settings
   public string GatekeeperCron => ReadConfigValue("GatekeeperCron", "0 * * * *");
-  public bool ScanOnStart => ReadConfigValue("ScanOnStart", false);
+  public bool ScanOnStart => ReadConfigValue("ScanOnStart", true);
 
   // Scan settings
   public int ScanLimit => ReadConfigValue("ScanLimit", 50);
