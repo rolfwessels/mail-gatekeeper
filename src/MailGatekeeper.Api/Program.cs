@@ -64,10 +64,13 @@ app.UseMiddleware<ApiTokenMiddleware>();
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 
 // List alerts
-app.MapGet("/v1/alerts", (GatekeeperStore store, Settings settings, int? limit) =>
+app.MapGet("/v1/alerts", (GatekeeperStore store, Settings settings, int? limit, DateTimeOffset? since) =>
 {
+  var alerts = store.GetAlerts(settings.DeduplicateThreads, settings.ThreadItemLimit);
+  if (since.HasValue)
+    alerts = alerts.Where(a => a.ReceivedAt >= since.Value);
   var take = Math.Clamp(limit ?? 20, 1, 200);
-  return Results.Ok(store.GetAlerts(settings.DeduplicateThreads, settings.ThreadItemLimit).Take(take));
+  return Results.Ok(alerts.Take(take));
 });
 
 // Manual scan trigger

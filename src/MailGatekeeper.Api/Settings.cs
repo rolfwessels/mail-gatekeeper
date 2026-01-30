@@ -25,7 +25,7 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
 
   // Scan settings
   public int ScanLimit => ReadConfigValue("ScanLimit", 50);
-  public bool FetchBodySnippet => ReadConfigValue("FetchBodySnippet", false);
+  public bool FetchBodySnippet => ReadConfigValue("FetchBodySnippet", true);
   public bool FetchFullBody => ReadConfigValue("FetchFullBody", false);
   public bool DeduplicateThreads => ReadConfigValue("DeduplicateThreads", true);
   public int ThreadItemLimit => ReadConfigValue("ThreadItemLimit", 6);

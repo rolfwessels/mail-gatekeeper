@@ -90,11 +90,25 @@ public sealed class ImapService(
 
     var reply = BuildReply(original, opts.Username, req.Body, req.SubjectPrefix);
 
-    var drafts = await client.GetFolderAsync(opts.DraftsFolder, ct);
-    await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
-    await drafts.AppendAsync(reply, MessageFlags.Draft, ct);
+    // Try SpecialFolder.Drafts first (auto-detected), fallback to config
+    IMailFolder drafts;
+    try
+    {
+      drafts = client.GetFolder(SpecialFolder.Drafts);
+      await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
+      log.LogInformation("Using auto-detected drafts folder: {Folder}", drafts.FullName);
+    }
+    catch
+    {
+      drafts = await client.GetFolderAsync(opts.DraftsFolder, ct);
+      await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
+      log.LogInformation("Using configured drafts folder: {Folder}", drafts.FullName);
+    }
 
-    log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.MessageId, opts.DraftsFolder);
+    // For Gmail, append without flags (null) - Gmail auto-detects drafts in the Drafts folder
+    await drafts.AppendAsync(reply, null, DateTimeOffset.Now, ct);
+
+    log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.Id, drafts.FullName);
 
     return new CreateDraftResponse(
       DraftMessageId: reply.MessageId ?? Guid.NewGuid().ToString("N"),
@@ -107,7 +121,23 @@ public sealed class ImapService(
     var reply = new MimeMessage();
 
     reply.From.Add(new MailboxAddress("", fromAddress));
+
+    // Reply-All: Add original From
     reply.To.AddRange(original.From);
+
+    // Reply-All: Add original To recipients (excluding self)
+    foreach (var addr in original.To.Mailboxes)
+    {
+      if (!addr.Address.Equals(fromAddress, StringComparison.OrdinalIgnoreCase))
+        reply.To.Add(addr);
+    }
+
+    // Reply-All: Add original Cc recipients (excluding self)
+    foreach (var addr in original.Cc.Mailboxes)
+    {
+      if (!addr.Address.Equals(fromAddress, StringComparison.OrdinalIgnoreCase))
+        reply.Cc.Add(addr);
+    }
 
     var prefix = string.IsNullOrWhiteSpace(subjectPrefix) ? "Re: " : subjectPrefix.Trim() + " ";
     var originalSubject = original.Subject ?? "";
