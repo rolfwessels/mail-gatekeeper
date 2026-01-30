@@ -9,7 +9,7 @@ public sealed class ImapOptions
   public required string Password { get; init; }
 
   public string InboxFolder { get; init; } = "INBOX";
-  public string DraftsFolder { get; init; } = "Drafts";
+  public string DraftsFolder { get; init; } = "[Gmail]/Drafts";
 
   public static ImapOptions FromConfig(Settings settings)
   {

@@ -14,7 +14,7 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
   //use https://myaccount.google.com/apppasswords
   public string ImapPassword => ReadConfigValue("ImapPassword", "");
   public string ImapInboxFolder => ReadConfigValue("ImapInboxFolder", "INBOX");
-  public string ImapDraftsFolder => ReadConfigValue("ImapDraftsFolder", "Drafts");
+  public string ImapDraftsFolder => ReadConfigValue("ImapDraftsFolder", "[Gmail]/Drafts");
 
   // API Token
   public string GatekeeperApiToken => ReadConfigValue("GatekeeperApiToken", "asdlkjfaslkdjsadfasdfasd");

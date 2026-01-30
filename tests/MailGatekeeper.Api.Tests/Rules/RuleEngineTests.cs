@@ -61,7 +61,8 @@ public class RuleEngineTests
   [TestCase("user@example.com", "Please confirm your email", "", "confirm")]
   [TestCase("contact@site.com", "Meeting tomorrow at 3pm", "", "meeting")]
   [TestCase("user@example.com", "Need to reschedule", "", "reschedule")]
-  [TestCase("sender@company.org", "Please sign the contract", "", "sign")]
+  [TestCase("sender@company.org", "Please sign document attached", "", "sign document")]
+  [TestCase("sender@company.org", "Signature required for this contract", "", "signature required")]
   [TestCase("someone@service.com", "Waiting for your approve", "", "approve")]
   public void Classify_ActionKeywordInSubject_ReturnsActionRequired(string from,
     string subject,

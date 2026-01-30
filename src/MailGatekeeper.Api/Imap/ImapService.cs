@@ -90,7 +90,7 @@ public sealed class ImapService(
 
     var reply = BuildReply(original, opts.Username, req.Body, req.SubjectPrefix);
 
-    // Try SpecialFolder.Drafts first (auto-detected), fallback to config
+    // Try SpecialFolder.Drafts first (auto-detected), fallback to Gmail-specific, then config
     IMailFolder drafts;
     try
     {
@@ -100,13 +100,24 @@ public sealed class ImapService(
     }
     catch
     {
-      drafts = await client.GetFolderAsync(opts.DraftsFolder, ct);
-      await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
-      log.LogInformation("Using configured drafts folder: {Folder}", drafts.FullName);
+      // Gmail-specific fallback
+      var gmailDrafts = "[Gmail]/Drafts";
+      try
+      {
+        drafts = await client.GetFolderAsync(gmailDrafts, ct);
+        await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
+        log.LogInformation("Using Gmail-specific drafts folder: {Folder}", drafts.FullName);
+      }
+      catch
+      {
+        drafts = await client.GetFolderAsync(opts.DraftsFolder, ct);
+        await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
+        log.LogInformation("Using configured drafts folder: {Folder}", drafts.FullName);
+      }
     }
 
     // For Gmail, append without flags (null) - Gmail auto-detects drafts in the Drafts folder
-    await drafts.AppendAsync(reply, null, DateTimeOffset.Now, ct);
+    await drafts.AppendAsync(reply, MessageFlags.None, ct);
 
     log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.Id, drafts.FullName);
 
