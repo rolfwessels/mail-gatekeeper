@@ -24,7 +24,39 @@ builder.Services.AddSingleton<ImapClientFactory>();
 builder.Services.AddSingleton<ImapService>();
 builder.Services.AddHostedService<PollingService>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+  options.SwaggerDoc("v1", new() { Title = "Mail Gatekeeper API", Version = "v1" });
+  options.AddSecurityDefinition("Bearer", new()
+  {
+    Name = "Authorization",
+    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+    Scheme = "Bearer",
+    BearerFormat = "JWT",
+    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+    Description = "Enter 'Bearer' [space] and then your token"
+  });
+  options.AddSecurityRequirement(new()
+  {
+    {
+      new()
+      {
+        Reference = new() { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" }
+      },
+      Array.Empty<string>()
+    }
+  });
+});
+
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+  options.SwaggerEndpoint("/swagger/v1/swagger.json", "Mail Gatekeeper API v1");
+  options.RoutePrefix = string.Empty; // Serve Swagger UI at root
+});
 
 app.UseMiddleware<ApiTokenMiddleware>();
 
@@ -32,10 +64,10 @@ app.UseMiddleware<ApiTokenMiddleware>();
 app.MapGet("/health", () => Results.Ok(new { ok = true }));
 
 // List alerts
-app.MapGet("/v1/alerts", (GatekeeperStore store, int? limit) =>
+app.MapGet("/v1/alerts", (GatekeeperStore store, Settings settings, int? limit) =>
 {
   var take = Math.Clamp(limit ?? 20, 1, 200);
-  return Results.Ok(store.GetAlerts().Take(take));
+  return Results.Ok(store.GetAlerts(settings.DeduplicateThreads, settings.ThreadItemLimit).Take(take));
 });
 
 // Manual scan trigger
