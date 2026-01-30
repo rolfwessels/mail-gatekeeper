@@ -1,7 +1,7 @@
 using MailKit.Net.Imap;
 using MailKit.Security;
 
-namespace MailGatekeeper.Imap;
+namespace MailGatekeeper.Api.Imap;
 
 public sealed class ImapClientFactory
 {

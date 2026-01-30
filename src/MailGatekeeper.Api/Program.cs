@@ -1,6 +1,6 @@
-using MailGatekeeper;
-using MailGatekeeper.Imap;
-using MailGatekeeper.Rules;
+using MailGatekeeper.Api;
+using MailGatekeeper.Api.Imap;
+using MailGatekeeper.Api.Rules;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Serilog;
 
@@ -14,6 +14,7 @@ builder.Host.UseSerilog((ctx, cfg) =>
     .WriteTo.Console();
 });
 
+builder.Services.AddSingleton<Settings>();
 builder.Services.AddSingleton<GatekeeperStore>();
 builder.Services.AddSingleton<RuleEngine>();
 builder.Services.AddSingleton<ImapClientFactory>();
@@ -58,8 +59,9 @@ app.MapPost("/v1/drafts", async Task<Results<Ok<CreateDraftResponse>, BadRequest
 
 app.Run();
 
-namespace MailGatekeeper
+namespace MailGatekeeper.Api
 {
   public sealed record CreateDraftRequest(string AlertId, string Body, string? SubjectPrefix = null);
+
   public sealed record CreateDraftResponse(string DraftMessageId, string DraftsFolder, string InReplyTo);
 }

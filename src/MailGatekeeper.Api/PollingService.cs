@@ -1,24 +1,24 @@
 using Cronos;
-using MailGatekeeper.Imap;
+using MailGatekeeper.Api.Imap;
 
-namespace MailGatekeeper;
+namespace MailGatekeeper.Api;
 
 public sealed class PollingService : BackgroundService
 {
   private readonly ILogger<PollingService> _log;
-  private readonly IConfiguration _config;
+  private readonly Settings _settings;
   private readonly ImapService _imap;
 
-  public PollingService(ILogger<PollingService> log, IConfiguration config, ImapService imap)
+  public PollingService(ILogger<PollingService> log, Settings settings, ImapService imap)
   {
     _log = log;
-    _config = config;
+    _settings = settings;
     _imap = imap;
   }
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-    var cronExpr = _config["GATEKEEPER_CRON"] ?? "0 * * * *";
+    var cronExpr = _settings.GatekeeperCron;
 
     CronExpression cron;
     try
@@ -34,7 +34,7 @@ public sealed class PollingService : BackgroundService
     _log.LogInformation("Polling service started. Schedule={Cron}", cronExpr);
 
     // Optional: scan immediately on startup
-    if (bool.TryParse(_config["SCAN_ON_START"], out var scanOnStart) && scanOnStart)
+    if (_settings.ScanOnStart)
     {
       await RunScanAsync(stoppingToken);
     }

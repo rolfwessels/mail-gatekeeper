@@ -1,25 +1,25 @@
+using MailGatekeeper.Api.Rules;
 using MailKit;
 using MimeKit;
-using MailGatekeeper.Rules;
 
-namespace MailGatekeeper.Imap;
+namespace MailGatekeeper.Api.Imap;
 
 public sealed class ImapService
 {
-  private readonly IConfiguration _config;
+  private readonly Settings _settings;
   private readonly GatekeeperStore _store;
   private readonly RuleEngine _rules;
   private readonly ImapClientFactory _factory;
   private readonly ILogger<ImapService> _log;
 
   public ImapService(
-    IConfiguration config,
+    Settings settings,
     GatekeeperStore store,
     RuleEngine rules,
     ImapClientFactory factory,
     ILogger<ImapService> log)
   {
-    _config = config;
+    _settings = settings;
     _store = store;
     _rules = rules;
     _factory = factory;
@@ -28,13 +28,13 @@ public sealed class ImapService
 
   public async Task<ScanResult> ScanAsync(CancellationToken ct)
   {
-    var opts = ImapOptions.FromConfig(_config);
+    var opts = ImapOptions.FromConfig(_settings);
 
     using var client = await _factory.ConnectAsync(opts, ct);
     var inbox = await client.GetFolderAsync(opts.InboxFolder, ct);
     await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
 
-    var limit = int.TryParse(_config["SCAN_LIMIT"], out var n) ? n : 50;
+    var limit = _settings.ScanLimit;
     var start = Math.Max(0, inbox.Count - limit);
 
     var summaries = await inbox.FetchAsync(
@@ -43,7 +43,7 @@ public sealed class ImapService
       ct);
 
     var added = 0;
-    var fetchBody = bool.TryParse(_config["FETCH_BODY_SNIPPET"], out var fb) && fb;
+    var fetchBody = _settings.FetchBodySnippet;
 
     foreach (var summary in summaries.Reverse())
     {

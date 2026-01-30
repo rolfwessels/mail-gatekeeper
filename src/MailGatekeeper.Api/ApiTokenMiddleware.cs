@@ -1,26 +1,19 @@
 using System.Net;
 
-namespace MailGatekeeper;
+namespace MailGatekeeper.Api;
 
-public sealed class ApiTokenMiddleware
+public sealed class ApiTokenMiddleware(RequestDelegate next)
 {
-  private readonly RequestDelegate _next;
-
-  public ApiTokenMiddleware(RequestDelegate next)
-  {
-    _next = next;
-  }
-
-  public async Task InvokeAsync(HttpContext context, IConfiguration config)
+  public async Task InvokeAsync(HttpContext context, Settings settings)
   {
     // Health check stays open (useful for local probes)
     if (context.Request.Path.Equals("/health"))
     {
-      await _next(context);
+      await next(context);
       return;
     }
 
-    var expected = config["GATEKEEPER_API_TOKEN"];
+    var expected = settings.GatekeeperApiToken;
     if (string.IsNullOrWhiteSpace(expected))
     {
       context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -39,6 +32,6 @@ public sealed class ApiTokenMiddleware
       return;
     }
 
-    await _next(context);
+    await next(context);
   }
 }

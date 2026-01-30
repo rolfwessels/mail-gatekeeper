@@ -13,10 +13,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
       # (find src* | grep  '/bin$' && find src* | grep  '/obj$' && find tests* | grep  '/bin$' && find tests* | grep  '/obj$')  | sed 's/^/ - \/template-dotnet-core-console-app\//'
-      - /template-dotnet-core-console-app/src/TemplateDotnetCoreConsoleApp.Cmd/bin
-      - /template-dotnet-core-console-app/src/TemplateDotnetCoreConsoleApp.Cmd/obj
-      - /template-dotnet-core-console-app/tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/bin
-      - /template-dotnet-core-console-app/tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/obj
+      - /template-dotnet-core-console-app/src/MailGatekeeper.Cmd/bin
+      - /template-dotnet-core-console-app/src/MailGatekeeper.Cmd/obj
     environment:
       - ASPNETCORE_ENVIRONMENT=development
       - HISTFILE=/cache/.bash_history

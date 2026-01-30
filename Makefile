@@ -100,11 +100,11 @@ version:
 
 start: 
 	@echo -e "Starting the $(release) release of $(project)"
-	@cd src/TemplateDotnetCoreConsoleApp.Cmd; dotnet run -- --help
+	@cd src/MailGatekeeper.Cmd; dotnet run -- --help
 
 test: 
 	@echo -e "Testing ${GREEN}v${version}${NC}"
-	@dotnet test TemplateDotnetCoreConsoleApp.sln --logger:trx --results-directory ../TestResults \
+	@dotnet test MailGatekeeper.sln --logger:trx --results-directory ../TestResults \
 		 /p:CollectCoverage=true \
 		 /p:CoverletOutput=../TestResults/ \
 		 /p:MergeWith=../TestResults/coverlet.info \
@@ -114,7 +114,7 @@ test:
 publish: 
 	@echo -e "Building the ${GREEN}v${version}${NC}-$(release) release of $(project)"
 		
-	@dotnet publish src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj -r linux-x64 -c $(release) \
+	@dotnet publish src/MailGatekeeper.Cmd/MailGatekeeper.Cmd.csproj -r linux-x64 -c $(release) \
 		-p:DebugType=None \
 		-p:DebugSymbols=false \
 		-p:PublishSingleFile=true \
@@ -124,7 +124,7 @@ publish:
 		-p:FileVersion=$(version) \
 		-p:VersionPrefix=$(version) \
 	--output ./dist/$(release)/linux-x64 
-	@dotnet publish src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj -r win-x64 -c $(release) \
+	@dotnet publish src/MailGatekeeper.Cmd/MailGatekeeper.Cmd.csproj -r win-x64 -c $(release) \
 		-p:DebugType=None \
 		-p:DebugSymbols=false \
 		-p:PublishSingleFile=true \
@@ -145,7 +145,7 @@ docker-login:
 
 docker-build:
 	@echo -e "Building branch ${RED}$(current-branch)${NC} to ${GREEN}$(docker-tags)${NC} with ${GREEN}$(version-full)${NC}"
-	@cd src && docker build -f TemplateDotnetCoreConsoleApp.Cmd/Dockerfile --build-arg VERSION=$(version) --build-arg VERSION_SUFFIX=$(version-suffix) ${docker-tags} .
+	@cd src && docker build -f MailGatekeeper.Cmd/Dockerfile --build-arg VERSION=$(version) --build-arg VERSION_SUFFIX=$(version-suffix) ${docker-tags} .
 
 docker-push:
 	@echo -e "Pushing to ${GREEN}$(docker-tags)${NC}"

@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: ./
-      dockerfile: ./TemplateDotnetCoreConsoleApp.Cmd/Dockerfile
+      dockerfile: ./MailGatekeeper.Cmd/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=test-local
     ports:

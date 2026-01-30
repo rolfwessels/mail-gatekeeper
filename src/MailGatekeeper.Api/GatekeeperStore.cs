@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace MailGatekeeper;
+namespace MailGatekeeper.Api;
 
 public sealed record Alert(
   string Id,

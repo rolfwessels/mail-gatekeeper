@@ -1,4 +1,4 @@
-namespace MailGatekeeper.Rules;
+namespace MailGatekeeper.Api.Rules;
 
 public sealed class RuleEngine
 {

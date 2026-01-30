@@ -30,10 +30,9 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
 # Working Folder
 WORKDIR /template-dotnet-core-console-app
 # find * | grep '.csproj' | grep -v obj  | sed "s|\(.*\)/\([^/]*\)\.csproj|COPY [\"\1/\2.csproj\", \"\1/\"]|"
-COPY ["src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj", "src/TemplateDotnetCoreConsoleApp.Cmd/"]
-COPY ["tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/TemplateDotnetCoreConsoleApp.Cmd.Tests.csproj", "tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/"]
+COPY ["src/MailGatekeeper.Cmd/MailGatekeeper.Cmd.csproj", "src/MailGatekeeper.Cmd/"]
 
-COPY ["TemplateDotnetCoreConsoleApp.sln", "TemplateDotnetCoreConsoleApp.sln"]
+COPY ["MailGatekeeper.sln", "MailGatekeeper.sln"]
 RUN dotnet restore
 
 
