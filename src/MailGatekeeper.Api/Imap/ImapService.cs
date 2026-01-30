@@ -1,6 +1,7 @@
 using MailGatekeeper.Api.Rules;
 using MailKit;
 using MailKit.Net.Imap;
+using MailKit.Search;
 using MimeKit;
 
 namespace MailGatekeeper.Api.Imap;
@@ -31,6 +32,8 @@ public sealed class ImapService(
 
     var added = 0;
     var fetchBody = settings.FetchBodySnippet;
+    var includeRepliedThreads = settings.IncludeRepliedThreads;
+    var userEmail = opts.Username.ToLowerInvariant();
 
     foreach (var summary in summaries.Reverse())
     {
@@ -55,8 +58,20 @@ public sealed class ImapService(
       }
 
       var classification = rules.Classify(from, subject, snippet);
-      if (classification.Category != "action_required")
+      var isRepliedThread = false;
+
+      // Check if this is a thread where the user has replied
+      if (includeRepliedThreads && classification.Category != "action_required")
+      {
+        isRepliedThread = await HasUserRepliedInThreadAsync(inbox, summary, userEmail, ct);
+      }
+
+      if (classification.Category != "action_required" && !isRepliedThread)
         continue;
+
+      var reason = isRepliedThread && classification.Category != "action_required" 
+        ? "thread with your reply" 
+        : classification.Reason;
 
       var messageId = env.MessageId ?? summary.UniqueId.Id.ToString();
 
@@ -65,8 +80,8 @@ public sealed class ImapService(
         From: from,
         Subject: subject,
         ReceivedAt: env.Date ?? DateTimeOffset.UtcNow,
-        Category: classification.Category,
-        Reason: classification.Reason,
+        Category: isRepliedThread && classification.Category != "action_required" ? "replied_thread" : classification.Category,
+        Reason: reason,
         Snippet: snippet,
         Uid: summary.UniqueId.Id));
 
@@ -186,6 +201,40 @@ public sealed class ImapService(
   private static string ExtractFullBody(MimeMessage msg)
   {
     return (msg.TextBody ?? "").Trim();
+  }
+
+  private async Task<bool> HasUserRepliedInThreadAsync(IMailFolder inbox, IMessageSummary summary, string userEmail, CancellationToken ct)
+  {
+    try
+    {
+      // Fetch the full message to check References and In-Reply-To headers
+      var msg = await inbox.GetMessageAsync(summary.UniqueId, ct);
+      
+      // Check if user's email is in the References chain (indicates user participated in thread)
+      if (msg.References != null && msg.References.Count > 0)
+      {
+        // Search for messages in inbox sent by user that are in this thread
+        SearchQuery query = SearchQuery.FromContains(userEmail);
+        foreach (var reference in msg.References)
+        {
+          query = SearchQuery.And(query, SearchQuery.HeaderContains("Message-ID", reference));
+        }
+        
+        var userMessageUids = await inbox.SearchAsync(query, ct);
+        if (userMessageUids.Count > 0)
+        {
+          log.LogDebug("Found user reply in thread for message {MessageId}", summary.Envelope.MessageId);
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    catch (Exception ex)
+    {
+      log.LogWarning(ex, "Failed to check if user replied in thread for UID {Uid}", summary.UniqueId);
+      return false;
+    }
   }
 }
 

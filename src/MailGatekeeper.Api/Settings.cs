@@ -29,6 +29,7 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
   public bool FetchFullBody => ReadConfigValue("FetchFullBody", false);
   public bool DeduplicateThreads => ReadConfigValue("DeduplicateThreads", true);
   public int ThreadItemLimit => ReadConfigValue("ThreadItemLimit", 6);
+  public bool IncludeRepliedThreads => ReadConfigValue("IncludeRepliedThreads", true);
 
   // Rule Engine patterns
   public string[] IgnoreSenderPatterns => ReadConfigValue("IgnoreSenderPatterns", "no-reply,noreply,donotreply,info,mongodb.com,team.mongodb.com")
