@@ -66,7 +66,6 @@ public sealed class ImapService(
         Category: classification.Category,
         Reason: classification.Reason,
         Snippet: snippet,
-        MessageId: messageId,
         Uid: summary.UniqueId.Id));
 
       added++;

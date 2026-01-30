@@ -29,8 +29,8 @@ public sealed class RuleEngine
     if (matchedKeyword != null)
       return new Classification("action_required", $"keyword: {matchedKeyword}");
 
-    // Question in snippet (basic heuristic)
-    if (!string.IsNullOrEmpty(snippet) && snippet.Contains('?'))
+    // Question in snippet (basic heuristic) - only when snippet fetching is enabled
+    if (_settings.FetchBodySnippet && !string.IsNullOrEmpty(snippet) && snippet.Contains('?'))
       return new Classification("action_required", "question in body");
 
     return new Classification("info_only", "no action signals");

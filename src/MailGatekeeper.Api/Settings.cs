@@ -25,13 +25,13 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
 
   // Scan settings
   public int ScanLimit => ReadConfigValue("ScanLimit", 50);
-  public bool FetchBodySnippet => ReadConfigValue("FetchBodySnippet", true);
+  public bool FetchBodySnippet => ReadConfigValue("FetchBodySnippet", false);
   public bool FetchFullBody => ReadConfigValue("FetchFullBody", false);
   public bool DeduplicateThreads => ReadConfigValue("DeduplicateThreads", true);
   public int ThreadItemLimit => ReadConfigValue("ThreadItemLimit", 6);
 
   // Rule Engine patterns
-  public string[] IgnoreSenderPatterns => ReadConfigValue("IgnoreSenderPatterns", "no-reply,noreply,donotreply,info")
+  public string[] IgnoreSenderPatterns => ReadConfigValue("IgnoreSenderPatterns", "no-reply,noreply,donotreply,info,mongodb.com,team.mongodb.com")
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     .Select(p => p.ToLowerInvariant())
     .ToArray();
@@ -43,7 +43,7 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
       .ToArray();
 
   public string[] ActionSubjectPatterns => ReadConfigValue("ActionSubjectPatterns",
-      "action required,urgent,invoice,payment,overdue,confirm,meeting,reschedule,sign,approve,maintenance")
+      "action required,urgent,invoice,payment,overdue,confirm,meeting,reschedule,sign document,signature required,approve,maintenance")
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     .Select(p => p.ToLowerInvariant())
     .ToArray();

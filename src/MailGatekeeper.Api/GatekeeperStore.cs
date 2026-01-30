@@ -10,7 +10,6 @@ public sealed record Alert(
   string Category,
   string Reason,
   string Snippet,
-  string MessageId,
   uint Uid);
 
 public sealed class GatekeeperStore
