@@ -1,5 +1,6 @@
 using MailGatekeeper.Api.Rules;
 using MailKit;
+using MailKit.Net.Imap;
 using MimeKit;
 
 namespace MailGatekeeper.Api.Imap;
@@ -16,6 +17,7 @@ public sealed class ImapService(
     var opts = ImapOptions.FromConfig(settings);
 
     using var client = await factory.ConnectAsync(opts, ct);
+
     var inbox = await client.GetFolderAsync(opts.InboxFolder, ct);
     await inbox.OpenAsync(FolderAccess.ReadOnly, ct);
 
@@ -94,7 +96,7 @@ public sealed class ImapService(
     IMailFolder drafts;
     try
     {
-      drafts = client.GetFolder(SpecialFolder.Drafts);
+      drafts = client.GetFolder(settings.ImapDraftsFolder);
       await drafts.OpenAsync(FolderAccess.ReadWrite, ct);
       log.LogInformation("Using auto-detected drafts folder: {Folder}", drafts.FullName);
     }
@@ -116,8 +118,11 @@ public sealed class ImapService(
       }
     }
 
-    // For Gmail, append without flags (null) - Gmail auto-detects drafts in the Drafts folder
-    await drafts.AppendAsync(reply, MessageFlags.None, ct);
+    log.LogInformation("Reply: From={From}, To={To}, Subject={Subject}",
+      string.Join(",", reply.From),
+      string.Join(",", reply.To),
+      reply.Subject);
+    await drafts.AppendAsync(reply, MessageFlags.Draft, ct);
 
     log.LogInformation("Created draft reply to {MessageId} in {Folder}", alert.Id, drafts.FullName);
 
