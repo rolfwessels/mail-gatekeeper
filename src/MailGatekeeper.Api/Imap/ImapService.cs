@@ -69,8 +69,8 @@ public sealed class ImapService(
       if (classification.Category != "action_required" && !isRepliedThread)
         continue;
 
-      var reason = isRepliedThread && classification.Category != "action_required" 
-        ? "thread with your reply" 
+      var reason = isRepliedThread && classification.Category != "action_required"
+        ? "thread with your reply"
         : classification.Reason;
 
       var messageId = env.MessageId ?? summary.UniqueId.Id.ToString();
@@ -209,7 +209,7 @@ public sealed class ImapService(
     {
       // Fetch the full message to check References and In-Reply-To headers
       var msg = await inbox.GetMessageAsync(summary.UniqueId, ct);
-      
+
       // Check if user's email is in the References chain (indicates user participated in thread)
       if (msg.References != null && msg.References.Count > 0)
       {
@@ -219,7 +219,7 @@ public sealed class ImapService(
         {
           query = SearchQuery.And(query, SearchQuery.HeaderContains("Message-ID", reference));
         }
-        
+
         var userMessageUids = await inbox.SearchAsync(query, ct);
         if (userMessageUids.Count > 0)
         {
@@ -227,7 +227,7 @@ public sealed class ImapService(
           return true;
         }
       }
-      
+
       return false;
     }
     catch (Exception ex)

@@ -13,7 +13,7 @@ versionPrefix := 0.1
 version := $(versionPrefix).$(shell git rev-list HEAD --count)
 git-short-hash := $(shell git rev-parse --short=8 HEAD)
 version-suffix := ''
-dockerhub := dockerhub.com/mail-gatekeeper
+registry := rolfwessels/mail-gatekeeper
 
 release := release
 ifeq ($(env), dev)
@@ -30,13 +30,13 @@ else
 endif
 
 ifeq ($(current-branch), main)
-	docker-tags := -t $(dockerhub):alpha -t $(dockerhub):latest -t $(dockerhub):v$(version) -t $(dockerhub):$(git-short-hash)
+	docker-tags := -t $(registry):alpha -t $(registry):latest -t $(registry):v$(version) -t $(registry):$(git-short-hash)
 	version-full := $(version)
 else
 	version := $(versionPrefix).$(shell git rev-list origin/main --count).$(shell git rev-list origin/main..HEAD --count)
 	version-suffix := alpha
 	version-full := $(version)-$(version-suffix)
-	docker-tags := -t $(dockerhub):$(version-suffix) -t $(dockerhub):$(git-short-hash) -t $(dockerhub):v$(version-full)
+	docker-tags := -t $(registry):$(version-suffix) -t $(registry):$(git-short-hash) -t $(registry):v$(version-full)
 endif
 
 # Docker Warning
@@ -150,7 +150,11 @@ docker-build:
 docker-push:
 	@echo -e "Pushing to ${GREEN}$(docker-tags)${NC}"
 	@docker push --all-tags $(registry)
-	@docker images | grep "$(registry)" | awk '{system("docker rmi " "'"$(registry):"'" $$2)}'
+
+docker-clean:
+	@echo -e "Cleaning up docker images $(registry)"
+	@docker images --format "{{.Repository}}:{{.Tag}}" --filter "reference=$(registry):*" | xargs -r docker rmi || true
+
 
 docker-pull-short-tag:
 	@echo -e "Pulling ${GREEN}$(registry):$(git-short-hash)${NC}"
