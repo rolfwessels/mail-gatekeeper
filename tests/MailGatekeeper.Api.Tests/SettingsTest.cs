@@ -16,8 +16,9 @@ public class SettingsTest
 
 
     var apiSettings = new Settings(configuration);
-    var secret = apiSettings.ImapUsername;
-    Console.Out.WriteLine("ImapUsername: " + secret);
-    Console.Out.WriteLine("ImapUsername: " + apiSettings.GetEncryptedValue(secret));
+    var secret = apiSettings.DeduplicateThreads;
+    secret.Should().BeTrue();
+    // Console.Out.WriteLine("ImapUsername: " + secret);
+    // Console.Out.WriteLine("ImapUsername: " + apiSettings.GetEncryptedValue(secret));
   }
 }

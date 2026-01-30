@@ -3,8 +3,11 @@ services:
   app:
     build:
       context: ./
-      dockerfile: ./MailGatekeeper.Cmd/Dockerfile
+      dockerfile: ./MailGatekeeper.Api/Dockerfile
     environment:
-      - ASPNETCORE_ENVIRONMENT=test-local
+      - ASPNETCORE_ENVIRONMENT=local
+      - mg_key=${mg_key}
+    volumes:
+      - ./MailGatekeeper.Api/appsettings.local.json:/app/appsettings.local.json:ro
     ports:
       - 5012:8080
