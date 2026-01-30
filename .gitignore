@@ -1,0 +1,14 @@
+.vs/
+.aws/
+
+**/bin/*
+**/obj/*
+*.user
+*.ncrunchsolution
+*.suo
+/**/*nCrunch**
+**/*NCrunch*
+
+dist/*
+tests/**/TestResults/**/*
+src/version.json

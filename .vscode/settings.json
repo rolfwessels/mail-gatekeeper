@@ -1,0 +1,21 @@
+{
+    "dotnet-test-explorer.testProjectPath": "tests\\**\\*.csproj",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 3000,
+    "cSpell.enabled": true,
+    "cSpell.enableFiletypes": [
+        "makefile"
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/*??runch*": true,
+        "**/*.user*": true
+
+    }
+    
+}
