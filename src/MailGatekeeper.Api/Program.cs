@@ -63,7 +63,21 @@ app.UseSwaggerUI(options =>
 app.UseMiddleware<ApiTokenMiddleware>();
 
 // Health (no auth)
-app.MapGet("/health", () => Results.Ok(new { ok = true }));
+app.MapGet("/health", () =>
+{
+  var assembly = typeof(Program).Assembly;
+  var version = assembly.GetName().Version?.ToString() ?? "unknown";
+  var informationalVersion = assembly
+    .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+    .FirstOrDefault() as System.Reflection.AssemblyInformationalVersionAttribute;
+  
+  return Results.Ok(new
+  {
+    ok = true,
+    version = informationalVersion?.InformationalVersion ?? version,
+    fileVersion = assembly.GetName().Version?.ToString() ?? "unknown"
+  });
+});
 
 // List alerts
 app.MapGet("/v1/alerts", (GatekeeperStore store, Settings settings, int? limit, DateTimeOffset? since) =>

@@ -52,10 +52,23 @@ Authorization: Bearer <GatekeeperApiToken>
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/health` | GET | Health check (no auth) |
+| `/health` | GET | Health check (no auth) - Returns status and version info |
 | `/v1/alerts` | GET | List action_required and replied_thread alerts |
 | `/v1/scan` | POST | Trigger manual scan |
 | `/v1/drafts` | POST | Create draft reply |
+
+### GET /health
+
+Health check endpoint (no authentication required). Returns service status and version information.
+
+Response:
+```json
+{
+  "ok": true,
+  "version": "0.1.123",
+  "fileVersion": "0.1.123.0"
+}
+```
 
 ### GET /v1/alerts
 
