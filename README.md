@@ -118,33 +118,6 @@ Response:
 | `WebhookUrl` | URL to POST notifications when new alerts are found <br> Default: *(empty)* |
 | `WebhookToken` | Bearer token for webhook authentication (optional) <br> Default: *(empty)* |
 
-## Webhook Integration
-
-Mail Gatekeeper can notify external services when new alerts are found via webhooks. This is useful for integrating with chat bots, notification systems, or automation platforms.
-
-### Webhook Payload
-
-When new alerts are detected, a POST request is sent to the configured `WebhookUrl`:
-
-```json
-{
-  "event": "alerts.new",
-  "timestamp": "2026-01-31T05:30:00Z",
-  "alertCount": 2,
-  "alerts": [
-    {
-      "id": "<message-id>",
-      "from": "sender@example.com",
-      "subject": "Action Required: Review document",
-      "receivedAt": "2026-01-31T05:25:00Z",
-      "category": "action_required",
-      "reason": "subject contains 'action required'",
-      "snippet": "Please review the attached document..."
-    }
-  ]
-}
-```
-
 ### OpenClaw Integration
 
 [OpenClaw](https://docs.openclaw.ai) can receive webhook notifications and inject them as events into your AI assistant session.
@@ -168,7 +141,7 @@ Point the webhook URL to OpenClaw's `/hooks/wake` endpoint:
 
 ```bash
 # Environment variables
-WebhookUrl=https://your-openclaw-gateway.example.com/hooks/wake
+WebhookUrl=https://your-openclaw-gateway.example.com/hooks/agent
 WebhookToken=your-webhook-secret
 ```
 
@@ -178,7 +151,7 @@ Or in `docker-compose.yml`:
 services:
   mail-gatekeeper:
     environment:
-      - WebhookUrl=https://your-openclaw-gateway.example.com/hooks/wake
+      - WebhookUrl=https://your-openclaw-gateway.example.com/hooks/agent
       - WebhookToken=${OPENCLAW_HOOK_TOKEN}
 ```
 
