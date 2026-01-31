@@ -145,36 +145,30 @@ When new alerts are detected, a POST request is sent to the configured `WebhookU
 }
 ```
 
-### Moltbot Integration
+### OpenClaw Integration
 
-[Moltbot](https://docs.molt.bot) can receive webhook notifications and inject them as events into your AI assistant session.
+[OpenClaw](https://docs.openclaw.ai) can receive webhook notifications and inject them as events into your AI assistant session.
 
-#### 1. Enable hooks in Moltbot config
+#### 1. Enable hooks in OpenClaw config
 
-Add a hook endpoint to your `config.yaml`. See [Moltbot Hooks Documentation](https://docs.molt.bot/features/hooks) for full details.
+Add hooks to your `config.json`. See [OpenClaw Webhook Documentation](https://docs.openclaw.ai/automation/webhook) for full details.
 
-```yaml
-hooks:
-  enabled: true
-  secret: "your-webhook-secret"  # Generate a secure random string
-  endpoints:
-    - id: mail-alerts
-      path: /hooks/mail
-      sessionTarget: main        # or "isolated" for background processing
-      template: |
-        📬 **New Email Alert**
-        From: {{alerts.[0].from}}
-        Subject: {{alerts.[0].subject}}
-        {{#if (gt alertCount 1)}}(+{{subtract alertCount 1}} more){{/if}}
+```json
+{
+  "hooks": {
+    "enabled": true,
+    "token": "your-webhook-secret"
+  }
+}
 ```
 
 #### 2. Configure Mail Gatekeeper
 
-Set the webhook URL to your Moltbot hook endpoint:
+Point the webhook URL to OpenClaw's `/hooks/wake` endpoint:
 
 ```bash
 # Environment variables
-WebhookUrl=https://your-moltbot-gateway.example.com/hooks/mail
+WebhookUrl=https://your-openclaw-gateway.example.com/hooks/wake
 WebhookToken=your-webhook-secret
 ```
 
@@ -184,8 +178,8 @@ Or in `docker-compose.yml`:
 services:
   mail-gatekeeper:
     environment:
-      - WebhookUrl=https://your-moltbot-gateway.example.com/hooks/mail
-      - WebhookToken=${MOLTBOT_HOOK_SECRET}
+      - WebhookUrl=https://your-openclaw-gateway.example.com/hooks/wake
+      - WebhookToken=${OPENCLAW_HOOK_TOKEN}
 ```
 
 #### 3. Test the integration
@@ -197,7 +191,7 @@ curl -X POST http://localhost:8080/v1/scan \
   -H "Authorization: Bearer your-api-token"
 ```
 
-If there are new action-required emails, Moltbot will receive a webhook and inject the event into your session.
+If there are new action-required emails, OpenClaw will receive a webhook and inject the event into your session.
 
 ## Classification Rules
 

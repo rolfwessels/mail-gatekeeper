@@ -28,19 +28,24 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
       return;
     }
 
-    var payload = new WebhookPayload(
-      Event: "alerts.new",
-      Timestamp: DateTimeOffset.UtcNow,
-      AlertCount: alertList.Count,
-      Alerts: alertList.Select(a => new WebhookAlert(
-        Id: a.Id,
-        From: a.From,
-        Subject: a.Subject,
-        ReceivedAt: a.ReceivedAt,
-        Category: a.Category,
-        Reason: a.Reason,
-        Snippet: a.Snippet
-      )).ToList()
+    // Build human-readable summary for the webhook text
+    var textBuilder = new StringBuilder();
+    textBuilder.AppendLine($"📬 Mail Gatekeeper: {alertList.Count} new alert(s)");
+    
+    foreach (var alert in alertList.Take(5)) // Limit to 5 in summary
+    {
+      var fromName = ExtractName(alert.From);
+      textBuilder.AppendLine($"• [{alert.Category}] {fromName}: {alert.Subject}");
+    }
+    
+    if (alertList.Count > 5)
+    {
+      textBuilder.AppendLine($"  ...and {alertList.Count - 5} more");
+    }
+
+    var payload = new OpenClawWakePayload(
+      Text: textBuilder.ToString().Trim(),
+      Mode: "now"
     );
 
     try
@@ -78,21 +83,25 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
       log.LogError(ex, "Failed to send webhook notification to {Url}", webhookUrl);
     }
   }
+
+  private static string ExtractName(string from)
+  {
+    // Extract display name from "Name <email>" format, or return email
+    if (string.IsNullOrWhiteSpace(from))
+      return "(unknown)";
+    
+    var ltIndex = from.IndexOf('<');
+    if (ltIndex > 0)
+      return from[..ltIndex].Trim().Trim('"');
+    
+    return from;
+  }
 }
 
-public sealed record WebhookPayload(
-  string Event,
-  DateTimeOffset Timestamp,
-  int AlertCount,
-  List<WebhookAlert> Alerts
-);
-
-public sealed record WebhookAlert(
-  string Id,
-  string From,
-  string Subject,
-  DateTimeOffset ReceivedAt,
-  string Category,
-  string Reason,
-  string Snippet
+/// <summary>
+/// OpenClaw /hooks/wake compatible payload
+/// </summary>
+public sealed record OpenClawWakePayload(
+  string Text,
+  string Mode
 );
