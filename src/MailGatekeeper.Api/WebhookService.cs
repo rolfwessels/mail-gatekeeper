@@ -49,8 +49,7 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
       textBuilder.AppendLine($"  ...and {alertList.Count - 5} more");
     }
 
-    var payload =
-      new OpenClawMessagePayload("You have new mail alerts, run the skill `mail-gatekeeper` and let user know");
+    var payload = new OpenClawMessagePayload(settings.WebhookMessage);
 
     try
     {

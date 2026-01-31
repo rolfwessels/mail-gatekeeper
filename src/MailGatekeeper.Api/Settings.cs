@@ -52,4 +52,6 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
   // Webhook settings
   public string WebhookUrl => ReadConfigValue("WebhookUrl", "");
   public string WebhookToken => ReadConfigValue("WebhookToken", "");
+  public string WebhookMessage => ReadConfigValue("WebhookMessage", 
+    "You have new mail alerts, run the skill `mail-gatekeeper` and let user know");
 }

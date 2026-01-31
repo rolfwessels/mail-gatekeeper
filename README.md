@@ -117,6 +117,7 @@ Response:
 | **Webhook Settings** | |
 | `WebhookUrl` | URL to POST notifications when new alerts are found <br> Default: *(empty)* |
 | `WebhookToken` | Bearer token for webhook authentication (optional) <br> Default: *(empty)* |
+| `WebhookMessage` | Custom message to send in webhook payload (OpenClaw integration) <br> Default: `You have new mail alerts, run the skill 'mail-gatekeeper' and let user know` |
 
 ### OpenClaw Integration
 
@@ -130,19 +131,21 @@ Add hooks to your `config.json`. See [OpenClaw Webhook Documentation](https://do
 {
   "hooks": {
     "enabled": true,
-    "token": "your-webhook-secret"
+    "token": "your-webhook-secret",
+    "path": "/hooks"
   }
 }
 ```
 
 #### 2. Configure Mail Gatekeeper
 
-Point the webhook URL to OpenClaw's `/hooks/wake` endpoint:
+Point the webhook URL to OpenClaw's `/hooks/agent` endpoint:
 
 ```bash
 # Environment variables
 WebhookUrl=https://your-openclaw-gateway.example.com/hooks/agent
 WebhookToken=your-webhook-secret
+WebhookMessage=You have new mail alerts, run the skill `mail-gatekeeper` and let user know
 ```
 
 Or in `docker-compose.yml`:
@@ -153,7 +156,17 @@ services:
     environment:
       - WebhookUrl=https://your-openclaw-gateway.example.com/hooks/agent
       - WebhookToken=${OPENCLAW_HOOK_TOKEN}
+      - WebhookMessage=You have new mail alerts, run the skill `mail-gatekeeper` and let user know
 ```
+
+**Why customize `WebhookMessage`?**
+
+The `WebhookMessage` setting allows you to control what instruction OpenClaw receives when new mail alerts arrive. This is useful for:
+- Telling OpenClaw to run a specific skill or command (e.g., `mail-gatekeeper`)
+- Customizing the notification behavior (e.g., "Check mail silently" vs "Alert user immediately")
+- Integrating with different OpenClaw workflows or automation scripts
+
+The default message instructs OpenClaw to run the `mail-gatekeeper` skill and notify the user, but you can customize it to match your workflow needs.
 
 #### 3. Test the integration
 
