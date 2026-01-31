@@ -17,36 +17,40 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
     var webhookUrl = settings.WebhookUrl;
     if (string.IsNullOrWhiteSpace(webhookUrl))
     {
-      log.LogDebug("Webhook URL not configured, skipping notification");
+      log.LogWarning("Webhook URL not configured, skipping notification");
       return;
+    }
+
+    var token = settings.WebhookToken;
+    if (string.IsNullOrWhiteSpace(token))
+    {
+      log.LogWarning("Webhook token not configured, proceeding without authorization header");
     }
 
     var alertList = alerts.ToList();
     if (alertList.Count == 0)
     {
-      log.LogDebug("No alerts to notify");
+      log.LogInformation("No alerts to notify");
       return;
     }
 
     // Build human-readable summary for the webhook text
     var textBuilder = new StringBuilder();
     textBuilder.AppendLine($"📬 Mail Gatekeeper: {alertList.Count} new alert(s)");
-    
+
     foreach (var alert in alertList.Take(5)) // Limit to 5 in summary
     {
       var fromName = ExtractName(alert.From);
       textBuilder.AppendLine($"• [{alert.Category}] {fromName}: {alert.Subject}");
     }
-    
+
     if (alertList.Count > 5)
     {
       textBuilder.AppendLine($"  ...and {alertList.Count - 5} more");
     }
 
-    var payload = new OpenClawWakePayload(
-      Text: textBuilder.ToString().Trim(),
-      Mode: "now"
-    );
+    var payload =
+      new OpenClawMessagePayload("You have new mail alerts, run the skill `mail-gatekeeper` and let user know");
 
     try
     {
@@ -60,7 +64,7 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
       };
 
       // Add authorization header if token is configured
-      var token = settings.WebhookToken;
+
       if (!string.IsNullOrWhiteSpace(token))
       {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -75,7 +79,8 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
       else
       {
         var body = await response.Content.ReadAsStringAsync(ct);
-        log.LogWarning("Webhook notification failed: {StatusCode} {Body}", response.StatusCode, body);
+        log.LogWarning("Webhook notification failed: {StatusCode} {Body} [{uri}]", response.StatusCode, body,
+          request.RequestUri);
       }
     }
     catch (Exception ex)
@@ -89,19 +94,17 @@ public sealed class WebhookService(Settings settings, ILogger<WebhookService> lo
     // Extract display name from "Name <email>" format, or return email
     if (string.IsNullOrWhiteSpace(from))
       return "(unknown)";
-    
+
     var ltIndex = from.IndexOf('<');
     if (ltIndex > 0)
       return from[..ltIndex].Trim().Trim('"');
-    
+
     return from;
   }
 }
 
-/// <summary>
-/// OpenClaw /hooks/wake compatible payload
-/// </summary>
-public sealed record OpenClawWakePayload(
-  string Text,
-  string Mode
+public sealed record OpenClawMessagePayload(
+  string Message,
+  string WakeMode = "now",
+  bool Delivered = true
 );
