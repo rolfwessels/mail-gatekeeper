@@ -30,7 +30,7 @@ public sealed class ImapService(
       MessageSummaryItems.Envelope | MessageSummaryItems.UniqueId,
       ct);
 
-    var added = 0;
+    var newAlerts = new List<Alert>();
     var fetchBody = settings.FetchBodySnippet;
     var includeRepliedThreads = settings.IncludeRepliedThreads;
     var userEmail = opts.Username.ToLowerInvariant();
@@ -75,7 +75,7 @@ public sealed class ImapService(
 
       var messageId = env.MessageId ?? summary.UniqueId.Id.ToString();
 
-      store.Upsert(new Alert(
+      var alert = new Alert(
         Id: messageId,
         From: from,
         Subject: subject,
@@ -83,12 +83,16 @@ public sealed class ImapService(
         Category: isRepliedThread && classification.Category != "action_required" ? "replied_thread" : classification.Category,
         Reason: reason,
         Snippet: snippet,
-        Uid: summary.UniqueId.Id));
+        Uid: summary.UniqueId.Id);
 
-      added++;
+      // Track if this is a newly added alert
+      if (store.Upsert(alert))
+      {
+        newAlerts.Add(alert);
+      }
     }
 
-    return new ScanResult(summaries.Count, added);
+    return new ScanResult(summaries.Count, newAlerts.Count, newAlerts);
   }
 
   public async Task<CreateDraftResponse> CreateDraftReplyAsync(CreateDraftRequest req, CancellationToken ct)
@@ -238,4 +242,4 @@ public sealed class ImapService(
   }
 }
 
-public sealed record ScanResult(int Scanned, int ActionRequired);
+public sealed record ScanResult(int Scanned, int ActionRequired, List<Alert> NewAlerts);

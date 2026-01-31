@@ -3,7 +3,7 @@ using MailGatekeeper.Api.Imap;
 
 namespace MailGatekeeper.Api;
 
-public sealed class PollingService(ILogger<PollingService> log, Settings settings, ImapService imap)
+public sealed class PollingService(ILogger<PollingService> log, Settings settings, ImapService imap, WebhookService webhook)
   : BackgroundService
 {
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,8 +56,14 @@ public sealed class PollingService(ILogger<PollingService> log, Settings setting
     try
     {
       var result = await imap.ScanAsync(ct);
-      log.LogInformation("Scan completed: {Scanned} scanned, {ActionRequired} action_required",
+      log.LogInformation("Scan completed: {Scanned} scanned, {ActionRequired} new alerts",
         result.Scanned, result.ActionRequired);
+
+      // Send webhook notification for new alerts
+      if (result.NewAlerts.Count > 0)
+      {
+        await webhook.NotifyAsync(result.NewAlerts, ct);
+      }
     }
     catch (Exception ex)
     {

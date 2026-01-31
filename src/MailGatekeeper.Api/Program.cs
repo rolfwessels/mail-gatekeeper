@@ -22,6 +22,8 @@ builder.Services.AddSingleton<GatekeeperStore>();
 builder.Services.AddSingleton<RuleEngine>();
 builder.Services.AddSingleton<ImapClientFactory>();
 builder.Services.AddSingleton<ImapService>();
+builder.Services.AddSingleton<WebhookService>();
+builder.Services.AddHttpClient("Webhook");
 builder.Services.AddHostedService<PollingService>();
 
 builder.Services.AddEndpointsApiExplorer();

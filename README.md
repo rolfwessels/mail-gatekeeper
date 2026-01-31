@@ -114,6 +114,90 @@ Response:
 | `IgnoreSenderPatterns` | `no-reply,noreply,donotreply,info,mongodb.com,team.mongodb.com` | Comma-separated patterns to ignore in sender |
 | `IgnoreSubjectPatterns` | `newsletter,unsubscribe,no-reply,noreply,do not reply` | Comma-separated patterns to ignore in subject |
 | `ActionSubjectPatterns` | `action required,urgent,invoice,payment,overdue,confirm,meeting,reschedule,sign document,signature required,approve,maintenance` | Comma-separated patterns for action-required detection |
+| **Webhook Settings** | | |
+| `WebhookUrl` | (empty) | URL to POST notifications when new alerts are found |
+| `WebhookToken` | (empty) | Bearer token for webhook authentication (optional) |
+
+## Webhook Integration
+
+Mail Gatekeeper can notify external services when new alerts are found via webhooks. This is useful for integrating with chat bots, notification systems, or automation platforms.
+
+### Webhook Payload
+
+When new alerts are detected, a POST request is sent to the configured `WebhookUrl`:
+
+```json
+{
+  "event": "alerts.new",
+  "timestamp": "2026-01-31T05:30:00Z",
+  "alertCount": 2,
+  "alerts": [
+    {
+      "id": "<message-id>",
+      "from": "sender@example.com",
+      "subject": "Action Required: Review document",
+      "receivedAt": "2026-01-31T05:25:00Z",
+      "category": "action_required",
+      "reason": "subject contains 'action required'",
+      "snippet": "Please review the attached document..."
+    }
+  ]
+}
+```
+
+### Moltbot Integration
+
+[Moltbot](https://docs.molt.bot) can receive webhook notifications and inject them as events into your AI assistant session.
+
+#### 1. Enable hooks in Moltbot config
+
+Add a hook endpoint to your `config.yaml`. See [Moltbot Hooks Documentation](https://docs.molt.bot/features/hooks) for full details.
+
+```yaml
+hooks:
+  enabled: true
+  secret: "your-webhook-secret"  # Generate a secure random string
+  endpoints:
+    - id: mail-alerts
+      path: /hooks/mail
+      sessionTarget: main        # or "isolated" for background processing
+      template: |
+        📬 **New Email Alert**
+        From: {{alerts.[0].from}}
+        Subject: {{alerts.[0].subject}}
+        {{#if (gt alertCount 1)}}(+{{subtract alertCount 1}} more){{/if}}
+```
+
+#### 2. Configure Mail Gatekeeper
+
+Set the webhook URL to your Moltbot hook endpoint:
+
+```bash
+# Environment variables
+WebhookUrl=https://your-moltbot-gateway.example.com/hooks/mail
+WebhookToken=your-webhook-secret
+```
+
+Or in `docker-compose.yml`:
+
+```yaml
+services:
+  mail-gatekeeper:
+    environment:
+      - WebhookUrl=https://your-moltbot-gateway.example.com/hooks/mail
+      - WebhookToken=${MOLTBOT_HOOK_SECRET}
+```
+
+#### 3. Test the integration
+
+Trigger a manual scan to test:
+
+```bash
+curl -X POST http://localhost:8080/v1/scan \
+  -H "Authorization: Bearer your-api-token"
+```
+
+If there are new action-required emails, Moltbot will receive a webhook and inject the event into your session.
 
 ## Classification Rules
 
