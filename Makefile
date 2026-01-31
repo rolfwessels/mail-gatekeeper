@@ -2,7 +2,7 @@
 
 # General Variables
 date=$(shell date +'%y.%m.%d.%H.%M')
-project := Template dotnet core console app
+project := Mail Gatekeeper
 container := dev
 docker-file-check := /.dockerenv
 docker-warning := ""
@@ -13,7 +13,7 @@ versionPrefix := 0.1
 version := $(versionPrefix).$(shell git rev-list HEAD --count)
 git-short-hash := $(shell git rev-parse --short=8 HEAD)
 version-suffix := ''
-dockerhub := dockerhub.com/template-dotnet-core-console-app
+registry := rolfwessels/mail-gatekeeper
 
 release := release
 ifeq ($(env), dev)
@@ -30,13 +30,13 @@ else
 endif
 
 ifeq ($(current-branch), main)
-	docker-tags := -t $(dockerhub):alpha -t $(dockerhub):latest -t $(dockerhub):v$(version) -t $(dockerhub):$(git-short-hash)
+	docker-tags := -t $(registry):alpha -t $(registry):latest -t $(registry):v$(version) -t $(registry):$(git-short-hash)
 	version-full := $(version)
 else
 	version := $(versionPrefix).$(shell git rev-list origin/main --count).$(shell git rev-list origin/main..HEAD --count)
 	version-suffix := alpha
 	version-full := $(version)-$(version-suffix)
-	docker-tags := -t $(dockerhub):$(version-suffix) -t $(dockerhub):$(git-short-hash) -t $(dockerhub):v$(version-full)
+	docker-tags := -t $(registry):$(version-suffix) -t $(registry):$(git-short-hash) -t $(registry):v$(version-full)
 endif
 
 # Docker Warning
@@ -68,7 +68,7 @@ help:
 	@echo "   - deploy                : Deploy the $(project)"
 	@echo "   - update-packages       : Update the packages"
 
-	
+
 	@echo ""
 	@echo "Options:"
 	@echo " - env    : sets the environment - supported environments are: dev | prod"
@@ -98,23 +98,23 @@ version:
 	@echo '{ "version": "${version}" }' > src/version.json
 
 
-start: 
+start:
 	@echo -e "Starting the $(release) release of $(project)"
-	@cd src/TemplateDotnetCoreConsoleApp.Cmd; dotnet run -- --help
+	@cd src/MailGatekeeper.Api; dotnet run -- --help
 
-test: 
+test:
 	@echo -e "Testing ${GREEN}v${version}${NC}"
-	@dotnet test TemplateDotnetCoreConsoleApp.sln --logger:trx --results-directory ../TestResults \
+	@dotnet test mail-gatekeeper.sln --logger:trx --results-directory ../TestResults \
 		 /p:CollectCoverage=true \
 		 /p:CoverletOutput=../TestResults/ \
 		 /p:MergeWith=../TestResults/coverlet.info \
 		 /p:Exclude="[*.Tests]*" \
 		 /p:CoverletOutputFormat="lcov"
 
-publish: 
+publish:
 	@echo -e "Building the ${GREEN}v${version}${NC}-$(release) release of $(project)"
-		
-	@dotnet publish src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj -r linux-x64 -c $(release) \
+
+	@dotnet publish src/MailGatekeeper.Api/MailGatekeeper.Api.csproj -r linux-x64 -c $(release) \
 		-p:DebugType=None \
 		-p:DebugSymbols=false \
 		-p:PublishSingleFile=true \
@@ -123,8 +123,8 @@ publish:
 		-p:VersionSuffix=$(version-suffix) \
 		-p:FileVersion=$(version) \
 		-p:VersionPrefix=$(version) \
-	--output ./dist/$(release)/linux-x64 
-	@dotnet publish src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj -r win-x64 -c $(release) \
+	--output ./dist/$(release)/linux-x64
+	@dotnet publish src/MailGatekeeper.Api/MailGatekeeper.Api.csproj -r win-x64 -c $(release) \
 		-p:DebugType=None \
 		-p:DebugSymbols=false \
 		-p:PublishSingleFile=true \
@@ -133,10 +133,10 @@ publish:
 		-p:VersionSuffix=$(version-suffix) \
 		-p:FileVersion=$(version) \
 		-p:VersionPrefix=$(version) \
-		--output ./dist/$(release)/win-x64 
+		--output ./dist/$(release)/win-x64
 
 
-docker-login: 
+docker-login:
 	@echo -e "Login to docker $(registry)"
 	@read -p "Username: " docker_username; \
 	read -s -p "Password: " docker_password; \
@@ -145,20 +145,24 @@ docker-login:
 
 docker-build:
 	@echo -e "Building branch ${RED}$(current-branch)${NC} to ${GREEN}$(docker-tags)${NC} with ${GREEN}$(version-full)${NC}"
-	@cd src && docker build -f TemplateDotnetCoreConsoleApp.Cmd/Dockerfile --build-arg VERSION=$(version) --build-arg VERSION_SUFFIX=$(version-suffix) ${docker-tags} .
+	@cd src && docker build -f MailGatekeeper.Api/Dockerfile --build-arg VERSION=$(version) --build-arg VERSION_SUFFIX=$(version-suffix) ${docker-tags} .
 
 docker-push:
 	@echo -e "Pushing to ${GREEN}$(docker-tags)${NC}"
 	@docker push --all-tags $(registry)
-	@docker images | grep "$(registry)" | awk '{system("docker rmi " "'"$(registry):"'" $$2)}'
+
+docker-clean:
+	@echo -e "Cleaning up docker images $(registry)"
+	@docker images --format "{{.Repository}}:{{.Tag}}" --filter "reference=$(registry):*" | xargs -r docker rmi || true
+
 
 docker-pull-short-tag:
 	@echo -e "Pulling ${GREEN}$(registry):$(git-short-hash)${NC}"
-	@docker pull "$(registry):$(git-short-hash)" 
+	@docker pull "$(registry):$(git-short-hash)"
 
 docker-tag-env: env-check
 	@echo -e "Tagging release ${GREEN}$(env)${NC}"
-	@docker tag "$(registry):$(git-short-hash)" "$(registry):$(env)"	
+	@docker tag "$(registry):$(git-short-hash)" "$(registry):$(env)"
 	@docker images | grep "$(registry)"
 
 docker-publish: docker-build docker-login docker-push
@@ -166,7 +170,7 @@ docker-publish: docker-build docker-login docker-push
 
 deploy: publish env-check
 	@echo -e "Deploying ${GREEN}v${version}${NC} of $(release)"
-	
+
 update-packages:
 	@echo "Updating package references to the latest versions..."
 	@for proj in $$(find . -name '*.csproj'); do \

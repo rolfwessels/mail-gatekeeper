@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine
 
 # Base Development Packages
 RUN apk update \
@@ -17,7 +17,7 @@ RUN apk update \
   docker-cli \
   docker-cli-compose \
   openssh \
-  && git config --global --add safe.directory /template-dotnet-core-console-app
+  && git config --global --add safe.directory /mail-gatekeeper
 
 
 # zsh
@@ -28,16 +28,16 @@ RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master
   echo "done"
 
 # Working Folder
-WORKDIR /template-dotnet-core-console-app
+WORKDIR /mail-gatekeeper
 # find * | grep '.csproj' | grep -v obj  | sed "s|\(.*\)/\([^/]*\)\.csproj|COPY [\"\1/\2.csproj\", \"\1/\"]|"
-COPY ["src/TemplateDotnetCoreConsoleApp.Cmd/TemplateDotnetCoreConsoleApp.Cmd.csproj", "src/TemplateDotnetCoreConsoleApp.Cmd/"]
-COPY ["tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/TemplateDotnetCoreConsoleApp.Cmd.Tests.csproj", "tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/"]
+COPY ["src/MailGatekeeper.Api/MailGatekeeper.Api.csproj", "src/MailGatekeeper.Api/"]
+COPY ["tests/MailGatekeeper.Api.Tests/MailGatekeeper.Api.Tests.csproj", "tests/MailGatekeeper.Api.Tests/"]
 
-COPY ["TemplateDotnetCoreConsoleApp.sln", "TemplateDotnetCoreConsoleApp.sln"]
+COPY ["mail-gatekeeper.sln", "mail-gatekeeper.sln"]
 RUN dotnet restore
 
 
-WORKDIR /template-dotnet-core-console-app
+WORKDIR /mail-gatekeeper
 ENV PATH="/root/.dotnet/tools:${PATH}"
 ENV TERM xterm-256color
 RUN printf 'export PS1="\[\e[0;34;0;33m\][DCKR]\[\e[0m\] \\t \[\e[40;38;5;28m\][\w]\[\e[0m\] \$ "' >> ~/.bashrc

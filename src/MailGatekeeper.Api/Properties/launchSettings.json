@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "MailGatekeeper.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "local"
+      },
+      "applicationUrl": "http://localhost:62361"
+    }
+  }
+}

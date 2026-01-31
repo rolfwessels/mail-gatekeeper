@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: 
+    branches:
       - 'main'
-    tags:        
+    tags:
       - 'v*'
   pull_request:
     branches: [main]
@@ -15,18 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RedisHost: localhost
-    
+
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
       - name: Test
         run: make test
-      - name: execute console to see if it runs
-        run: make start
   publish-dev:
     needs: test
     runs-on: ubuntu-latest
@@ -44,9 +41,9 @@ jobs:
         run: make publish
       - name: Build Docker image
         run: make docker-build
-      - name: Push images to Docker Hub
-        if: github.ref == 'refs/heads/main' || startsWith(github.event.head_commit.message, 'deploy')
-        run: make #docker-login docker-push deploy env=dev
+      # - name: Push images to Docker Hub
+      #   if: github.ref == 'refs/heads/main' || startsWith(github.event.head_commit.message, 'deploy')
+      #   run: make #docker-login docker-push deploy env=dev
   publish-prod:
     if: contains(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -62,4 +59,4 @@ jobs:
           dotnet-version: 8.0.x
       - name: Push images
         run: make #docker-pull-short-tag  docker-tag-env docker-push deploy env=latest
-      
+

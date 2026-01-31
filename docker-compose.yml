@@ -1,22 +1,20 @@
 version: "3.5"
 services:
   dev:
-    container_name: template-dotnet-core-console-app-dev
+    container_name: mail-gatekeeper-app-dev
     build:
       context: ./
       dockerfile: Dockerfile
     volumes:
-      - ".:/template-dotnet-core-console-app"
+      - ".:/mail-gatekeeper"
       - "./.aws:/root/.aws"
       - "./zshrc:/root/.zshrc"
-      - template-dotnet-core-console-app-cache:/cache
+      - mail-gatekeeper-app-cache:/cache
       - /var/run/docker.sock:/var/run/docker.sock
 
-      # (find src* | grep  '/bin$' && find src* | grep  '/obj$' && find tests* | grep  '/bin$' && find tests* | grep  '/obj$')  | sed 's/^/ - \/template-dotnet-core-console-app\//'
-      - /template-dotnet-core-console-app/src/TemplateDotnetCoreConsoleApp.Cmd/bin
-      - /template-dotnet-core-console-app/src/TemplateDotnetCoreConsoleApp.Cmd/obj
-      - /template-dotnet-core-console-app/tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/bin
-      - /template-dotnet-core-console-app/tests/TemplateDotnetCoreConsoleApp.Cmd.Tests/obj
+      # (find src* | grep  '/bin$' && find src* | grep  '/obj$' && find tests* | grep  '/bin$' && find tests* | grep  '/obj$')  | sed 's/^/ - \/mail-gatekeeper\//'
+      - /mail-gatekeeper/src/MailGatekeeper.Api/bin
+      - /mail-gatekeeper/src/MailGatekeeper.Api/obj
     environment:
       - ASPNETCORE_ENVIRONMENT=development
       - HISTFILE=/cache/.bash_history
@@ -25,4 +23,4 @@ services:
       driver: none
 
 volumes:
-  template-dotnet-core-console-app-cache:
+  mail-gatekeeper-app-cache:
