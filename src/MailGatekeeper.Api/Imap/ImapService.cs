@@ -157,8 +157,12 @@ public sealed class ImapService(
 
     reply.From.Add(new MailboxAddress("", fromAddress));
 
-    // Reply-All: Add original From
-    reply.To.AddRange(original.From);
+    // Reply-All: Add original From (excluding self)
+    foreach (var addr in original.From.Mailboxes)
+    {
+      if (!addr.Address.Equals(fromAddress, StringComparison.OrdinalIgnoreCase))
+        reply.To.Add(addr);
+    }
 
     // Reply-All: Add original To recipients (excluding self)
     foreach (var addr in original.To.Mailboxes)
