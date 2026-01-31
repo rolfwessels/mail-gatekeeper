@@ -2,7 +2,7 @@
 
 Minimal API that polls IMAP, classifies emails with simple rules, and exposes alerts. Can create draft replies (IMAP only — no sending).
 
-## Quick Start
+## Quick Start To Develop
 
 ### Using Docker Compose (Recommended)
 
@@ -88,35 +88,35 @@ Response:
 
 ## Config (Environment Variables)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| **API Settings** | | |
-| `GatekeeperApiToken` | `asdlkjfaslkdjsadfasdfasd` | Bearer token for API auth |
-| **IMAP Settings** | | |
-| `ImapHost` | `imap.gmail.com` | IMAP server hostname |
-| `ImapPort` | `993` | IMAP port |
-| `ImapUseSsl` | `true` | Use SSL/TLS |
-| `ImapUsername` | (required) | IMAP username/email |
-| `ImapPassword` | (required) | IMAP password ([Gmail App Password](https://myaccount.google.com/apppasswords)) |
-| `ImapInboxFolder` | `INBOX` | Inbox folder name |
-| `ImapDraftsFolder` | `[Gmail]/Drafts` | Drafts folder name (Gmail: `[Gmail]/Drafts`, Outlook: `Drafts`) |
-| **Polling Settings** | | |
-| `GatekeeperCron` | `0 * * * *` | Polling schedule in cron format (default: hourly) |
-| `ScanOnStart` | `true` | Run scan immediately on startup |
-| **Scan Settings** | | |
-| `ScanLimit` | `50` | Max messages to scan per run |
-| `FetchBodySnippet` | `true` | Fetch message body snippets (280 chars) |
-| `FetchFullBody` | `false` | Fetch full message body instead of snippet |
-| `DeduplicateThreads` | `true` | Group alerts by thread |
-| `ThreadItemLimit` | `6` | Max items per thread when deduplicating |
-| `IncludeRepliedThreads` | `true` | Include threads where you've already replied |
-| **Rule Engine Settings** | | |
-| `IgnoreSenderPatterns` | `no-reply,noreply,donotreply,info,mongodb.com,team.mongodb.com` | Comma-separated patterns to ignore in sender |
-| `IgnoreSubjectPatterns` | `newsletter,unsubscribe,no-reply,noreply,do not reply` | Comma-separated patterns to ignore in subject |
-| `ActionSubjectPatterns` | `action required,urgent,invoice,payment,overdue,confirm,meeting,reschedule,sign document,signature required,approve,maintenance` | Comma-separated patterns for action-required detection |
-| **Webhook Settings** | | |
-| `WebhookUrl` | (empty) | URL to POST notifications when new alerts are found |
-| `WebhookToken` | (empty) | Bearer token for webhook authentication (optional) |
+| Variable | Description |
+|----------|-------------|
+| **API Settings** | |
+| `GatekeeperApiToken` | Bearer token for API auth <br> Default: `asdlkjfaslkdjsadfasdfasd` |
+| **IMAP Settings** | |
+| `ImapHost` | IMAP server hostname <br> Default: `imap.gmail.com` |
+| `ImapPort` | IMAP port <br> Default: `993` |
+| `ImapUseSsl` | Use SSL/TLS <br> Default: `true` |
+| `ImapUsername` | IMAP username/email <br> **(required)** |
+| `ImapPassword` | IMAP password ([Gmail App Password](https://myaccount.google.com/apppasswords)) <br> **(required)** |
+| `ImapInboxFolder` | Inbox folder name <br> Default: `INBOX` |
+| `ImapDraftsFolder` | Drafts folder name <br> Default: `[Gmail]/Drafts` (Gmail) or `Drafts` (Outlook) |
+| **Polling Settings** | |
+| `GatekeeperCron` | Polling schedule in cron format <br> Default: `0 * * * *` (hourly) |
+| `ScanOnStart` | Run scan immediately on startup <br> Default: `true` |
+| **Scan Settings** | |
+| `ScanLimit` | Max messages to scan per run <br> Default: `50` |
+| `FetchBodySnippet` | Fetch message body snippets (280 chars) <br> Default: `true` |
+| `FetchFullBody` | Fetch full message body instead of snippet <br> Default: `false` |
+| `DeduplicateThreads` | Group alerts by thread <br> Default: `true` |
+| `ThreadItemLimit` | Max items per thread when deduplicating <br> Default: `6` |
+| `IncludeRepliedThreads` | Include threads where you've already replied <br> Default: `true` |
+| **Rule Engine Settings** | |
+| `IgnoreSenderPatterns` | Comma-separated patterns to ignore in sender <br> Example: `no-reply,noreply,donotreply,info,mongodb.com,team.mongodb.com` |
+| `IgnoreSubjectPatterns` | Comma-separated patterns to ignore in subject |
+| `ActionSubjectPatterns` | Comma-separated patterns for action-required detection <br> Default: `action required,urgent,invoice,payment,overdue,confirm,meeting,reschedule,sign document,signature required,approve,maintenance` |
+| **Webhook Settings** | |
+| `WebhookUrl` | URL to POST notifications when new alerts are found <br> Default: *(empty)* |
+| `WebhookToken` | Bearer token for webhook authentication (optional) <br> Default: *(empty)* |
 
 ## Webhook Integration
 
