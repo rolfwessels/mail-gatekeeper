@@ -48,4 +48,10 @@ public class Settings(IConfiguration configuration) : BaseSettingsWithEncryption
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     .Select(p => p.ToLowerInvariant())
     .ToArray();
+
+  // Webhook settings
+  public string WebhookUrl => ReadConfigValue("WebhookUrl", "");
+  public string WebhookToken => ReadConfigValue("WebhookToken", "");
+  public string WebhookMessage => ReadConfigValue("WebhookMessage", 
+    "You have new mail alerts, run the skill `mail-gatekeeper` and let user know");
 }

@@ -58,9 +58,12 @@ public sealed class GatekeeperStore
     return normalized.ToLowerInvariant();
   }
 
-  public void Upsert(Alert alert)
+  /// <summary>
+  /// Upserts an alert. Returns true if this is a new alert, false if it already existed.
+  /// </summary>
+  public bool Upsert(Alert alert)
   {
-    _alerts[alert.Id] = alert;
+    return _alerts.TryAdd(alert.Id, alert);
   }
 
   public bool TryGet(string alertId, out Alert? alert)
