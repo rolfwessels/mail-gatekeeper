@@ -192,6 +192,29 @@ curl -X POST http://localhost:8080/v1/scan \
 
 If there are new action-required emails, OpenClaw will receive a webhook and inject the event into your session.
 
+#### 4. Install the OpenClaw Skill (Optional but Recommended)
+
+For a complete integration with intelligent filtering, draft replies, and state tracking, install the included OpenClaw skill:
+
+👉 **[OpenClaw Skill Documentation](docs/openclaw/README.md)**
+
+The skill provides:
+- 🎯 **Smart filtering** — auto-ignores marketing, newsletters, and auto-replies
+- ✍️ **Draft replies** — "draft a reply to the maintenance email"
+- 📊 **State tracking** — never get duplicate notifications
+- 🤖 **Natural language** — "check my email" or "ignore that JetBrains email"
+
+Installation:
+```bash
+# Copy skill to your OpenClaw workspace
+cp -r docs/openclaw ~/clawd/skills/mail-gatekeeper
+
+# Add your API token
+echo "your-token-here" > ~/clawd/.mail-gatekeeper-token
+```
+
+See [docs/openclaw/README.md](docs/openclaw/README.md) for full setup instructions.
+
 ## Classification Rules
 
 ### `action_required`
